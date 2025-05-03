@@ -11,7 +11,7 @@ const resendApiKey = process.env.RESEND_API_KEY || "re_placeholder"
 const resend = new Resend(resendApiKey)
 
 // Email addresses
-const fromEmail = process.env.EMAIL_FROM || "notifications@click2fitness.com"
+const fromEmail = process.env.EMAIL_FROM || "notifications@onresend.com"
 const adminEmail = process.env.EMAIL_TO || "admin@click2fitness.com" // Change this to your admin email
 
 type Package = "STARTER" | "GROWTH" | "ELITE"

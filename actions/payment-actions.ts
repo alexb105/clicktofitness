@@ -77,10 +77,10 @@ export async function processPayment(data: PaymentData) {
 
     return { success: false, error: `Payment status: ${paymentIntent.status}` }
   } catch (error) {
-    console.error('Payment processing error:', error)
+    console.error('Payment processing error:', error, JSON.stringify(error));
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An unexpected error occurred' 
+      error: error instanceof Error ? error.message : JSON.stringify(error) 
     }
   }
 }
