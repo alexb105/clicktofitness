@@ -6,12 +6,15 @@ import { stripePromise } from "@/lib/stripe"
 
 interface StripeProviderProps {
   children: ReactNode
+  amount: number
 }
 
-export default function StripeProvider({ children }: StripeProviderProps) {
+export default function StripeProvider({ children, amount }: StripeProviderProps) {
   const options = {
     mode: "payment" as const,
+    amount: amount * 100, // Convert to cents
     currency: "usd",
+    paymentMethodCreation: "manual" as const,
     appearance: {
       theme: "night" as const,
       variables: {

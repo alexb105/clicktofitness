@@ -11,15 +11,15 @@ const resendApiKey = process.env.RESEND_API_KEY || "re_placeholder"
 const resend = new Resend(resendApiKey)
 
 // Email addresses
-const fromEmail = "notifications@click2fitness.com"
-const adminEmail = "admin@click2fitness.com" // Change this to your admin email
+const fromEmail = process.env.EMAIL_FROM || "notifications@click2fitness.com"
+const adminEmail = process.env.EMAIL_TO || "admin@click2fitness.com" // Change this to your admin email
 
 type Package = "STARTER" | "GROWTH" | "ELITE"
 
 interface OrderDetails {
   orderId: string
+  package: Package
   brandName: string
-  selectedPackage: Package
   contactName: string
   contactEmail: string
   contactPhone: string
@@ -28,43 +28,53 @@ interface OrderDetails {
 
 export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Email not sent: RESEND_API_KEY is not set')
+      return
+    }
+
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: orderDetails.contactEmail,
-      subject: `Order Confirmation - Click2Fitness ${orderDetails.selectedPackage} Package`,
+      subject: `Order Confirmation - ${orderDetails.brandName}`,
       html: getOrderConfirmationEmailHtml(orderDetails),
     })
 
     if (error) {
-      console.error("Error sending confirmation email:", error)
-      return { success: false, error }
+      console.error('Failed to send order confirmation email:', error)
+      throw error
     }
 
-    return { success: true, data }
+    return data
   } catch (error) {
-    console.error("Error sending confirmation email:", error)
-    return { success: false, error }
+    console.error('Error sending order confirmation email:', error)
+    throw error
   }
 }
 
 export async function sendAdminNotificationEmail(orderDetails: OrderDetails) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Email not sent: RESEND_API_KEY is not set')
+      return
+    }
+
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: adminEmail,
-      subject: `New Order: ${orderDetails.selectedPackage} Package for ${orderDetails.brandName}`,
+      subject: `New Order Received - ${orderDetails.brandName}`,
       html: getAdminNotificationEmailHtml(orderDetails),
     })
 
     if (error) {
-      console.error("Error sending admin notification email:", error)
-      return { success: false, error }
+      console.error('Failed to send admin notification email:', error)
+      throw error
     }
 
-    return { success: true, data }
+    return data
   } catch (error) {
-    console.error("Error sending admin notification email:", error)
-    return { success: false, error }
+    console.error('Error sending admin notification email:', error)
+    throw error
   }
 }
 
@@ -132,7 +142,7 @@ function getOrderConfirmationEmailHtml(orderDetails: OrderDetails): string {
           <div class="order-details">
             <h3>Order Details:</h3>
             <p><strong>Order ID:</strong> ${orderDetails.orderId}</p>
-            <p><strong>Package:</strong> ${orderDetails.selectedPackage}</p>
+            <p><strong>Package:</strong> ${orderDetails.package}</p>
             <p><strong>Brand Name:</strong> ${orderDetails.brandName}</p>
             <p><strong>Amount:</strong> ${formattedAmount}</p>
           </div>
@@ -219,7 +229,7 @@ function getAdminNotificationEmailHtml(orderDetails: OrderDetails): string {
           <div class="order-details">
             <h3>Order Details:</h3>
             <p><strong>Order ID:</strong> ${orderDetails.orderId}</p>
-            <p><strong>Package:</strong> ${orderDetails.selectedPackage}</p>
+            <p><strong>Package:</strong> ${orderDetails.package}</p>
             <p><strong>Brand Name:</strong> ${orderDetails.brandName}</p>
             <p><strong>Amount:</strong> ${formattedAmount}</p>
             <p><strong>Customer Name:</strong> ${orderDetails.contactName}</p>

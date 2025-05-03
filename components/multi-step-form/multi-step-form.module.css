@@ -508,6 +508,12 @@
   width: 100%;
 }
 
+.disabledButton {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 @media (max-width: 768px) {
   .formContainer {
     max-width: 95%;

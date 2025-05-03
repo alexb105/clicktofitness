@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { PaymentElement, useStripe, useElements, AddressElement } from "@stripe/react-stripe-js"
 import { Lock } from "lucide-react"
 import styles from "../multi-step-form/multi-step-form.module.css"
@@ -17,42 +16,135 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
   const stripe = useStripe()
   const elements = useElements()
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
+  const [isPaymentElementReady, setIsPaymentElementReady] = useState(false)
+  const [isAddressElementReady, setIsAddressElementReady] = useState(false)
+
+  useEffect(() => {
+    if (!stripe || !elements) {
+      return
+    }
+
+    // Check if elements are ready
+    const paymentElement = elements.getElement('payment')
+    const addressElement = elements.getElement('address')
+
+    if (paymentElement) {
+      paymentElement.on('ready', () => {
+        setIsPaymentElementReady(true)
+      })
+    }
+
+    if (addressElement) {
+      addressElement.on('ready', () => {
+        setIsAddressElementReady(true)
+      })
+    }
+  }, [stripe, elements])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
     if (!stripe || !elements) {
-      // Stripe.js hasn't yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
+      setErrorMessage("Stripe hasn't loaded yet. Please try again.")
       return
     }
 
-    // Create a payment method
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      elements,
-      params: {},
-    })
-
-    if (error) {
-      setErrorMessage(error.message)
-      onPaymentError(error.message || "An unknown error occurred")
+    if (!isPaymentElementReady || !isAddressElementReady) {
+      setErrorMessage("Payment form is still loading. Please wait.")
       return
     }
 
-    // If we got a payment method, we're good to go
-    if (paymentMethod) {
-      onPaymentSuccess(paymentMethod.id)
+    try {
+      // First, submit the elements to validate the form
+      const { error: submitError } = await elements.submit()
+      if (submitError) {
+        setErrorMessage(submitError.message)
+        onPaymentError(submitError.message)
+        return
+      }
+
+      // Get the payment element
+      const paymentElement = elements.getElement('payment')
+      if (!paymentElement) {
+        setErrorMessage("Payment element not found")
+        onPaymentError("Payment element not found")
+        return
+      }
+
+      // Get the address element
+      const addressElement = elements.getElement('address')
+      if (!addressElement) {
+        setErrorMessage("Address element not found")
+        onPaymentError("Address element not found")
+        return
+      }
+
+      // Get the address data
+      const addressData = await addressElement.getValue()
+      if (!addressData.complete) {
+        setErrorMessage("Please complete your billing address")
+        onPaymentError("Billing address incomplete")
+        return
+      }
+
+      // Create a payment method
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        element: paymentElement,
+        params: {
+          billing_details: {
+            name: addressData.value.name,
+            email: addressData.value.email,
+            phone: addressData.value.phone,
+            address: {
+              line1: addressData.value.address.line1,
+              line2: addressData.value.address.line2,
+              city: addressData.value.address.city,
+              state: addressData.value.address.state,
+              postal_code: addressData.value.address.postal_code,
+              country: addressData.value.address.country,
+            },
+          },
+        },
+      })
+
+      if (error) {
+        console.error('Payment method creation error:', error)
+        setErrorMessage(error.message)
+        onPaymentError(error.message || "An unknown error occurred")
+        return
+      }
+
+      if (paymentMethod) {
+        onPaymentSuccess(paymentMethod.id)
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      setErrorMessage("An unexpected error occurred. Please try again.")
+      onPaymentError("An unexpected error occurred")
     }
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <div className={styles.stripePaymentContainer}>
-        <PaymentElement />
+        <PaymentElement 
+          onReady={() => setIsPaymentElementReady(true)}
+          onError={(error) => {
+            console.error('PaymentElement error:', error)
+            setErrorMessage("Failed to load payment form. Please refresh the page.")
+          }}
+        />
 
         <div className={styles.addressContainer}>
           <h4 className={styles.addressTitle}>Billing Address</h4>
-          <AddressElement options={{ mode: "billing" }} />
+          <AddressElement 
+            options={{ mode: "billing" }}
+            onReady={() => setIsAddressElementReady(true)}
+            onError={(error) => {
+              console.error('AddressElement error:', error)
+              setErrorMessage("Failed to load address form. Please refresh the page.")
+            }}
+          />
         </div>
       </div>
 
@@ -65,10 +157,14 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
 
       <button
         type="submit"
-        disabled={!stripe || isProcessing}
-        className={`${styles.formButton} ${styles.nextButton} ${styles.stripeButton}`}
+        disabled={!stripe || !elements || isProcessing || !isPaymentElementReady || !isAddressElementReady}
+        className={`${styles.formButton} ${styles.nextButton} ${styles.stripeButton} ${
+          (!stripe || !elements || !isPaymentElementReady || !isAddressElementReady) ? styles.disabledButton : ''
+        }`}
       >
-        {isProcessing ? "Processing..." : "Complete Payment"}
+        {!stripe || !elements ? "Loading..." : 
+         !isPaymentElementReady || !isAddressElementReady ? "Preparing payment form..." :
+         isProcessing ? "Processing..." : "Complete Payment"}
       </button>
     </form>
   )

@@ -1,8 +1,8 @@
 import { loadStripe } from "@stripe/stripe-js"
 
-// Load the Stripe public key from environment variables
-// In a real application, you would set this in your .env.local file
-const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder"
+if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+  throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set in environment variables')
+}
 
 // Create a promise that resolves with the Stripe object
-export const stripePromise = loadStripe(stripePublicKey)
+export const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)

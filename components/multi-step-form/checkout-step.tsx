@@ -183,7 +183,7 @@ export default function CheckoutStep() {
             </div>
           </div>
 
-          <StripeProvider>
+          <StripeProvider amount={getPackagePrice()}>
             <PaymentForm
               onPaymentSuccess={handlePaymentSuccess}
               onPaymentError={handlePaymentError}

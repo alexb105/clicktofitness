@@ -3,9 +3,12 @@
 import Stripe from "stripe"
 import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email"
 
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+}
+
 // Initialize Stripe with the secret key
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-const stripe = new Stripe(stripeSecretKey!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 })
 
@@ -18,64 +21,66 @@ interface PaymentData {
   paymentMethodId: string
 }
 
+const PACKAGE_PRICES = {
+  STARTER: 199700, // $1,997.00
+  GROWTH: 399700, // $3,997.00
+  ELITE: 799700,  // $7,997.00
+} as const
+
 export async function processPayment(data: PaymentData) {
   try {
-    // Explicitly define the amount based on the package
-    let amount: number
-
-    if (data.selectedPackage === "STARTER") {
-      amount = 199700
-    } else if (data.selectedPackage === "GROWTH") {
-      amount = 399700
-    } else if (data.selectedPackage === "ELITE") {
-      amount = 799700
-    } else {
-      // Default fallback
-      amount = 199700
+    // Validate input data
+    if (!data.selectedPackage || !data.paymentMethodId) {
+      throw new Error('Missing required payment data')
     }
 
-    // Create a payment intent directly with the amount
+    // Get the amount based on the package
+    const amount = PACKAGE_PRICES[data.selectedPackage as keyof typeof PACKAGE_PRICES] || PACKAGE_PRICES.STARTER
+
+    // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
+      amount,
       currency: "usd",
       payment_method: data.paymentMethodId,
       confirm: true,
       description: `${data.selectedPackage} Package for ${data.brandName}`,
       receipt_email: data.contactEmail,
+      payment_method_types: ['card'],
+      metadata: {
+        package: data.selectedPackage,
+        brandName: data.brandName,
+        contactName: data.contactName,
+        contactPhone: data.contactPhone,
+      },
     })
 
     // If payment is successful, send confirmation emails
     if (paymentIntent.status === "succeeded") {
       const orderDetails = {
         orderId: paymentIntent.id,
+        package: data.selectedPackage,
+        amount: amount / 100, // Convert back to dollars
         brandName: data.brandName,
-        selectedPackage: data.selectedPackage,
         contactName: data.contactName,
         contactEmail: data.contactEmail,
         contactPhone: data.contactPhone,
-        amount: amount / 100, // Convert back to dollars for display
       }
 
-      // Send confirmation email to customer
-      await sendOrderConfirmationEmail(orderDetails)
+      // Send confirmation emails
+      await Promise.all([
+        sendOrderConfirmationEmail(orderDetails),
+        sendAdminNotificationEmail(orderDetails),
+      ])
 
-      // Send notification email to admin
-      await sendAdminNotificationEmail(orderDetails)
+      return { success: true, orderId: paymentIntent.id }
     }
 
-    // Return the payment intent
-    return {
-      success: true,
-      paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret,
-    }
+    return { success: false, error: `Payment status: ${paymentIntent.status}` }
   } catch (error) {
-    console.error("Payment processing error:", error)
-
-    // Return detailed error information
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "An unknown error occurred",
+    console.error('Payment processing error:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'An unexpected error occurred' 
     }
   }
 }
