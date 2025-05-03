@@ -459,30 +459,136 @@
 }
 
 .authContainer {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  gap: 20px;
-  text-align: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  padding: 20px;
 }
 
-.authButton {
-  padding: 10px 20px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-  border: none;
-  color: #fff;
+.loginForm {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+
+.loginForm h1 {
+  color: #1a1a1a;
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  color: #4a4a4a;
   font-size: 14px;
+  font-weight: 500;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #f8f8f8;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #007AFF;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.loginButton {
+  width: 100%;
+  padding: 14px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
-.authButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(255, 0, 0, 0.3);
+.loginButton:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.loginButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.errorMessage {
+  background: #fff2f2;
+  border: 1px solid #ffcdd2;
+  color: #d32f2f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.errorMessage::before {
+  content: "⚠️";
+}
+
+.loginLogo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.loginLogo img {
+  height: 40px;
+  width: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .loginForm {
+    background: #2d2d2d;
+  }
+
+  .loginForm h1 {
+    color: white;
+  }
+
+  .formGroup label {
+    color: #e1e1e1;
+  }
+
+  .input {
+    background: #1a1a1a;
+    border-color: #404040;
+    color: white;
+  }
+
+  .input:focus {
+    border-color: #007AFF;
+    background: #262626;
+  }
 }
 
 @media (max-width: 1200px) {

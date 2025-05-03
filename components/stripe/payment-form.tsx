@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { PaymentElement, useStripe, useElements, AddressElement } from "@stripe/react-stripe-js"
+import type { StripePaymentElementChangeEvent, StripeAddressElementChangeEvent } from "@stripe/stripe-js"
 import { Lock } from "lucide-react"
 import styles from "../multi-step-form/multi-step-form.module.css"
 
@@ -45,12 +46,14 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
     event.preventDefault()
 
     if (!stripe || !elements) {
-      setErrorMessage("Stripe hasn't loaded yet. Please try again.")
+      console.error("Stripe hasn't loaded yet")
+      setErrorMessage("Payment system is temporarily unavailable. Please try again in a moment.")
       return
     }
 
     if (!isPaymentElementReady || !isAddressElementReady) {
-      setErrorMessage("Payment form is still loading. Please wait.")
+      console.error("Payment form elements not ready")
+      setErrorMessage("Payment form is still loading. Please wait a moment.")
       return
     }
 
@@ -58,15 +61,17 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
       // First, submit the elements to validate the form
       const { error: submitError } = await elements.submit()
       if (submitError) {
-        setErrorMessage(submitError.message)
-        onPaymentError(submitError.message)
+        console.error('Elements submission error:', submitError)
+        setErrorMessage("Please check your payment details and try again.")
+        onPaymentError("Invalid payment details")
         return
       }
 
       // Get the payment element
       const paymentElement = elements.getElement('payment')
       if (!paymentElement) {
-        setErrorMessage("Payment element not found")
+        console.error("Payment element not found in DOM")
+        setErrorMessage("Payment system is temporarily unavailable. Please try again in a moment.")
         onPaymentError("Payment element not found")
         return
       }
@@ -74,7 +79,8 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
       // Get the address element
       const addressElement = elements.getElement('address')
       if (!addressElement) {
-        setErrorMessage("Address element not found")
+        console.error("Address element not found in DOM")
+        setErrorMessage("Payment system is temporarily unavailable. Please try again in a moment.")
         onPaymentError("Address element not found")
         return
       }
@@ -82,7 +88,7 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
       // Get the address data
       const addressData = await addressElement.getValue()
       if (!addressData.complete) {
-        setErrorMessage("Please complete your billing address")
+        setErrorMessage("Please complete all required billing address fields.")
         onPaymentError("Billing address incomplete")
         return
       }
@@ -93,7 +99,6 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
         params: {
           billing_details: {
             name: addressData.value.name,
-            email: addressData.value.email,
             phone: addressData.value.phone,
             address: {
               line1: addressData.value.address.line1,
@@ -109,8 +114,8 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
 
       if (error) {
         console.error('Payment method creation error:', error)
-        setErrorMessage(error.message)
-        onPaymentError(error.message || "An unknown error occurred")
+        setErrorMessage("There was a problem processing your payment. Please check your card details and try again.")
+        onPaymentError(error.message || "Payment method creation failed")
         return
       }
 
@@ -119,7 +124,7 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
       }
     } catch (error) {
       console.error('Payment error:', error)
-      setErrorMessage("An unexpected error occurred. Please try again.")
+      setErrorMessage("An unexpected error occurred. Please try again or contact support if the problem persists.")
       onPaymentError("An unexpected error occurred")
     }
   }
@@ -129,9 +134,11 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
       <div className={styles.stripePaymentContainer}>
         <PaymentElement 
           onReady={() => setIsPaymentElementReady(true)}
-          onError={(error) => {
-            console.error('PaymentElement error:', error)
-            setErrorMessage("Failed to load payment form. Please refresh the page.")
+          onChange={(event: StripePaymentElementChangeEvent) => {
+            if (event.complete === false) {
+              console.error('PaymentElement validation error')
+              setErrorMessage("Please check your payment details and try again.")
+            }
           }}
         />
 
@@ -140,9 +147,11 @@ export default function PaymentForm({ onPaymentSuccess, onPaymentError, isProces
           <AddressElement 
             options={{ mode: "billing" }}
             onReady={() => setIsAddressElementReady(true)}
-            onError={(error) => {
-              console.error('AddressElement error:', error)
-              setErrorMessage("Failed to load address form. Please refresh the page.")
+            onChange={(event: StripeAddressElementChangeEvent) => {
+              if (event.complete === false) {
+                console.error('AddressElement validation error')
+                setErrorMessage("Please complete all required billing address fields.")
+              }
             }}
           />
         </div>

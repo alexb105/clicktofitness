@@ -6,44 +6,9 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Search, Filter, MoreVertical, CheckCircle, Clock, AlertCircle } from "lucide-react"
 import styles from "./admin.module.css"
-
-// Mock data for demonstration purposes
-// In a real application, this would come from your database
-const MOCK_ORDERS = [
-  {
-    id: "ord_123456789",
-    customerName: "Alex Johnson",
-    brandName: "FitWithAlex",
-    package: "GROWTH",
-    amount: 3997,
-    status: "new",
-    date: "2023-05-01T10:30:00Z",
-    email: "alex@example.com",
-    phone: "+1 (555) 123-4567",
-  },
-  {
-    id: "ord_987654321",
-    customerName: "Sarah Williams",
-    brandName: "NutritionByWilliams",
-    package: "ELITE",
-    amount: 7997,
-    status: "in-progress",
-    date: "2023-04-28T14:15:00Z",
-    email: "sarah@example.com",
-    phone: "+1 (555) 987-6543",
-  },
-  {
-    id: "ord_456789123",
-    customerName: "Mike Thompson",
-    brandName: "MikeStrength",
-    package: "STARTER",
-    amount: 1997,
-    status: "completed",
-    date: "2023-04-15T09:45:00Z",
-    email: "mike@example.com",
-    phone: "+1 (555) 456-7890",
-  },
-]
+import { db, auth, checkAdminAuth } from "@/lib/firebase"
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { signOut } from "firebase/auth"
 
 type OrderStatus = "new" | "in-progress" | "completed" | "cancelled"
 
@@ -69,19 +34,51 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate authentication check and data loading
     const checkAuth = async () => {
-      // In a real app, you would check if the user is authenticated
-      // For demo purposes, we'll just set it to true after a delay
-      setTimeout(() => {
-        setIsAuthenticated(true)
-        setOrders(MOCK_ORDERS)
-        setIsLoading(false)
-      }, 1000)
+      const isAdmin = await checkAdminAuth()
+      if (!isAdmin) {
+        router.push("/admin/login")
+        return
+      }
+      setIsAuthenticated(true)
+      loadOrders()
     }
-
     checkAuth()
-  }, [])
+  }, [router])
+
+  const loadOrders = async () => {
+    try {
+      const q = query(collection(db, "orders"), orderBy("createdAt", "desc"))
+      const querySnapshot = await getDocs(q)
+      const ordersData: Order[] = querySnapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: data.orderId || doc.id,
+          customerName: data.contactName,
+          brandName: data.brandName,
+          package: data.package,
+          amount: data.amount,
+          status: data.status || "new",
+          date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+          email: data.contactEmail,
+          phone: data.contactPhone,
+        }
+      })
+      setOrders(ordersData)
+    } catch (err) {
+      console.error("Failed to fetch orders from Firestore", err)
+    }
+    setIsLoading(false)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.push("/admin/login")
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
+  }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
@@ -172,15 +169,7 @@ export default function AdminDashboard() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className={styles.authContainer}>
-        <h1>Access Denied</h1>
-        <p>You need to be logged in to access the admin dashboard.</p>
-        <button className={styles.authButton} onClick={() => router.push("/")}>
-          Back to Home
-        </button>
-      </div>
-    )
+    return null // Don't show anything while redirecting to login
   }
 
   return (
@@ -195,7 +184,10 @@ export default function AdminDashboard() {
         </div>
         <div className={styles.adminUser}>
           <div className={styles.userAvatar}>A</div>
-          <span className={styles.userName}>Admin</span>
+          <span className={styles.userName}>{auth.currentUser?.email}</span>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Logout
+          </button>
         </div>
       </header>
 

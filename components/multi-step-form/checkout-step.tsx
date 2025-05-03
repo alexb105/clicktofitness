@@ -69,21 +69,22 @@ export default function CheckoutStep() {
       })
 
       if (result.success) {
-        // Move to confirmation step
         setCurrentStep(3)
       } else {
-        // Handle payment error
-        setErrors({ payment: result.error || "Payment processing failed" })
+        console.error('Payment processing failed:', result.error)
+        setErrors({ payment: "We couldn't process your payment. Please try again or contact support if the problem persists." })
       }
     } catch (error) {
-      setErrors({ payment: "An unexpected error occurred" })
+      console.error('Unexpected error during payment:', error)
+      setErrors({ payment: "An unexpected error occurred. Please try again or contact support." })
     } finally {
       setIsProcessing(false)
     }
   }
 
   const handlePaymentError = (error: string) => {
-    setErrors({ payment: error })
+    console.error('Payment form error:', error)
+    setErrors({ payment: "There was a problem with your payment. Please check your details and try again." })
     setIsProcessing(false)
   }
 

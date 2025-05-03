@@ -1,18 +1,14 @@
-// Add this at the top of the file
+import { Resend } from 'resend';
+
 if (!process.env.RESEND_API_KEY) {
   console.warn("Warning: RESEND_API_KEY is not set. Email notifications will not be sent.")
 }
 
-import { Resend } from "resend"
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Initialize Resend with API key
-// In a real application, you would set this in your .env file
-const resendApiKey = process.env.RESEND_API_KEY || "re_placeholder"
-const resend = new Resend(resendApiKey)
-
-// Email addresses
-const fromEmail = process.env.EMAIL_FROM || "notifications@onresend.com"
-const adminEmail = process.env.EMAIL_TO || "admin@click2fitness.com" // Change this to your admin email
+// During testing, all emails will be sent to the verified email address
+const TESTING_EMAIL = "clicktofittness@gmail.com" // The email you used to sign up for Resend
+const fromEmail = "onboarding@resend.dev"
 
 type Package = "STARTER" | "GROWTH" | "ELITE"
 
@@ -26,55 +22,76 @@ interface OrderDetails {
   amount: number
 }
 
-export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
+async function sendEmail(to: string, subject: string, html: string) {
   try {
     if (!process.env.RESEND_API_KEY) {
       console.warn('Email not sent: RESEND_API_KEY is not set')
       return
     }
 
-    const { data, error } = await resend.emails.send({
-      from: fromEmail,
-      to: orderDetails.contactEmail,
-      subject: `Order Confirmation - ${orderDetails.brandName}`,
-      html: getOrderConfirmationEmailHtml(orderDetails),
-    })
+    // During testing, override the recipient with the verified email
+    const testingTo = TESTING_EMAIL
 
-    if (error) {
-      console.error('Failed to send order confirmation email:', error)
-      throw error
+    console.log('Attempting to send email with the following details:')
+    console.log('Original recipient:', to)
+    console.log('Testing recipient:', testingTo)
+    console.log('Subject:', subject)
+    console.log('From:', fromEmail)
+    console.log('API Key exists:', !!process.env.RESEND_API_KEY)
+
+    const response = await resend.emails.send({
+      from: fromEmail,
+      to: testingTo,
+      subject: `[TEST] ${subject} (Originally for: ${to})`,
+      html: `
+        <div style="background-color: #f8f9fa; padding: 20px; margin-bottom: 20px; border-radius: 5px;">
+          <strong>Testing Mode Notice:</strong><br>
+          This email was originally intended for: ${to}<br>
+          During testing, all emails are sent to: ${testingTo}
+        </div>
+        ${html}
+      `,
+    });
+
+    console.log('Resend API Response:', JSON.stringify(response, null, 2))
+
+    if ('error' in response) {
+      console.error('Failed to send email. Response:', response)
+      throw new Error(`Failed to send email: ${JSON.stringify(response)}`)
     }
 
-    return data
+    console.log('Email sent successfully!')
+    return response
   } catch (error) {
-    console.error('Error sending order confirmation email:', error)
+    console.error('Error in sendEmail function:', error)
+    console.error('Full error details:', JSON.stringify(error, null, 2))
     throw error
+  }
+}
+
+export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
+  try {
+    return await sendEmail(
+      orderDetails.contactEmail,
+      `Order Confirmation - ${orderDetails.brandName}`,
+      getOrderConfirmationEmailHtml(orderDetails)
+    );
+  } catch (error) {
+    console.error('Error sending order confirmation email:', error);
+    throw error;
   }
 }
 
 export async function sendAdminNotificationEmail(orderDetails: OrderDetails) {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.warn('Email not sent: RESEND_API_KEY is not set')
-      return
-    }
-
-    const { data, error } = await resend.emails.send({
-      from: fromEmail,
-      to: adminEmail,
-      subject: `New Order Received - ${orderDetails.brandName}`,
-      html: getAdminNotificationEmailHtml(orderDetails),
-    })
-
-    if (error) {
-      console.error('Failed to send admin notification email:', error)
-      throw error
-    }
-
-    return data
+    return await sendEmail(
+      orderDetails.contactEmail,
+      `New Order Received - ${orderDetails.brandName}`,
+      getAdminNotificationEmailHtml(orderDetails)
+    );
   } catch (error) {
-    console.error('Error sending admin notification email:', error)
-    throw error
+    console.error('Error sending admin notification email:', error);
+    throw error;
   }
 }
 
