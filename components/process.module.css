@@ -1,0 +1,214 @@
+.process {
+  padding: 150px 0;
+  background-color: var(--dark-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.processHeader {
+  text-align: center;
+  margin-bottom: 80px;
+  position: relative;
+}
+
+.processHeader h2 {
+  position: relative;
+  display: inline-block;
+}
+
+.processHeader h2::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.processTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.processStep {
+  display: flex;
+  gap: 30px;
+  position: relative;
+  padding: 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.processStep:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.processStep.active {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.stepNumberContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stepNumber {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  position: relative;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.stepIcon {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.2);
+  width: 40px;
+  height: 40px;
+}
+
+.numberText {
+  position: relative;
+  z-index: 2;
+}
+
+.connector {
+  width: 4px;
+  height: 60px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary), var(--secondary));
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepTitle {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.stepDescription {
+  color: var(--light-gray);
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.stepDetails {
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.stepDetails p {
+  color: var(--mid-gray);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.learnMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.learnMore:hover {
+  color: var(--primary);
+  gap: 8px;
+}
+
+.processFooter {
+  margin-top: 80px;
+  text-align: center;
+}
+
+.processStats {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statNumber {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  margin-bottom: 5px;
+}
+
+.statLabel {
+  color: var(--mid-gray);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .processStep {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .connector {
+    display: none;
+  }
+
+  .processStats {
+    flex-direction: column;
+    gap: 30px;
+  }
+}

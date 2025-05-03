@@ -1,0 +1,86 @@
+.bgCircle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 0;
+  opacity: 0.5;
+}
+
+.bgCircle1 {
+  width: 400px;
+  height: 400px;
+  background: var(--primary);
+  top: -100px;
+  left: -100px;
+  animation: float 8s ease-in-out infinite;
+}
+
+.bgCircle2 {
+  width: 300px;
+  height: 300px;
+  background: var(--secondary);
+  bottom: -50px;
+  right: -50px;
+  animation: float 10s ease-in-out infinite reverse;
+}
+
+.bgCircle3 {
+  width: 250px;
+  height: 250px;
+  background: var(--accent);
+  top: 50%;
+  left: 10%;
+  animation: float 12s ease-in-out infinite 1s;
+}
+
+.shape {
+  position: absolute;
+  z-index: 0;
+  opacity: 0.2;
+}
+
+.shape1 {
+  width: 150px;
+  height: 150px;
+  border: 3px solid var(--primary);
+  top: 20%;
+  left: 5%;
+  animation: rotate 20s linear infinite;
+}
+
+.shape2 {
+  width: 100px;
+  height: 100px;
+  border: 3px solid var(--secondary);
+  bottom: 10%;
+  right: 5%;
+  animation: rotate 15s linear infinite reverse;
+}
+
+.shape3 {
+  width: 80px;
+  height: 80px;
+  border: 3px solid var(--accent);
+  top: 60%;
+  left: 80%;
+  animation: rotate 25s linear infinite;
+}
+
+.particlesContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: particleFloat 15s infinite linear;
+}

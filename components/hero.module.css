@@ -1,0 +1,190 @@
+.hero {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.heroVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+}
+
+.heroContent {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 900px;
+  padding: 0 20px;
+}
+
+.heroSubtitle {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  margin-bottom: 20px;
+  color: var(--secondary);
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 225, 255, 0.5);
+}
+
+.heroTitle {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 30px;
+  text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.heroTitle::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: var(--primary);
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  top: -30px;
+  left: -30px;
+  animation: pulse 4s infinite alternate;
+}
+
+.heroTitle::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: var(--secondary);
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  bottom: -30px;
+  right: -30px;
+  animation: pulse 4s infinite alternate-reverse;
+}
+
+.heroButtons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.btnGradient {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 20px rgba(0, 225, 255, 0.3);
+  display: inline-block;
+  padding: 15px 30px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.btnGradient:hover {
+  background: linear-gradient(90deg, var(--primary) 30%, var(--secondary) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 225, 255, 0.4);
+}
+
+.btnSecondary {
+  background-color: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  display: inline-block;
+  padding: 15px 30px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.btnSecondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+}
+
+.socialProof {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
+
+.socialProofContent {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.socialProofText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.socialProofLogos {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.socialProofLogo {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  opacity: 0.8;
+}
+
+@media (max-width: 992px) {
+  .heroButtons {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .heroSubtitle {
+    font-size: 1rem;
+    letter-spacing: 3px;
+  }
+}
